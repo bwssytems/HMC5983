@@ -62,10 +62,14 @@ Address Location	Name 		Access
 class HMC5983 {
 	public:
 		int DEBUG;
-		void begin(int D = false);
+		void begin(int drdy_pin = -1, int D = false);
 		float read();
 	private:
-
+		bool _use_drdy();
+		bool _send_command();
+		float _read_data();
+		int _drdy_pin;
+		bool _wait_for_drdy;
 };
 
 #endif

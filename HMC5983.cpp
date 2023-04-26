@@ -9,9 +9,18 @@
 #include "HMC5983.h"
 #include <Wire.h>
 
-void HMC5983::begin(int D){
+void HMC5983::begin(int drdy_pin, int D) {
 	DEBUG = D;
+  _wait_for_drdy = false;
+  _drdy_pin = drdy_pin;  // Configure battery voltage
+  if(_drdy_pin != -1)
+    pinMode(_drdy_pin, INPUT);
+
 	Wire.begin();
+}
+
+bool HMC5983::_use_drdy() {
+  return _drdy_pin != -1;
 }
 
 /*
@@ -42,7 +51,7 @@ MISSING : EARTH DECLINATION ANGLE
 In other words, we are not making any compensation for the earth's north pole location vs the magnetic measurement
 
 */
-float HMC5983::read(){
+bool HMC5983::_send_command() {
   // start transmission
   //Wire.beginTransmission(HMC5983_ADDRESS);
 
@@ -66,11 +75,11 @@ float HMC5983::read(){
   Wire.write(0x02);
   Wire.write(0x01);
   Wire.endTransmission();
-	
-  // time delays required by HMC5983 upon receipt of the command
-  // Get Data. Compensate and Calculate New Heading : 6ms
-  delay(6);
 
+  return true;
+}
+
+float HMC5983::_read_data() {
   // step 3: get the six data bytes, MSB and LSB for X, Z, Y (in that order)
   //Wire.beginTransmission(HMC5983_ADDRESS);
   //Wire.write(HMC5983_READ);
@@ -123,7 +132,31 @@ float HMC5983::read(){
   if (HY == 0 && HX <= 0) H = 0.0;
   if (HY > 0) H = 90 - atan(HX/HY) * 180 / PI;
   if (HY < 0) H = 270 - atan(HX/HY) * 180 / PI;
-  
+}
+
+float HMC5983::read() {
+  float H = -1;
+  if(_use_drdy()) {
+    if(_wait_for_drdy) {
+      if(digitalRead(_drdy_pin) == HIGH) {
+        H = _read_data();
+        _wait_for_drdy = false;
+      } else {
+        H = -1;
+      }
+    } else {
+      _send_command();
+      _wait_for_drdy = true;
+    }
+  } else {
+    _send_command();
+    // time delays required by HMC5983 upon receipt of the command
+    // Get Data. Compensate and Calculate New Heading : 6ms
+    delay(6);
+
+    H = _read_data();
+  }
+
   return H;
 }
 
