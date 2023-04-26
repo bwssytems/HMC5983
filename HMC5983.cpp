@@ -15,13 +15,16 @@ HMC5983::HMC5983(int drdy_pin, bool debug_flag) {
   _drdy_pin = drdy_pin;
   if(_drdy_pin != -1)
     pinMode(_drdy_pin, INPUT);
+
+  _last_read = 0;
 }
 
 HMC5983::~HMC5983() {
 }
 
-void HMC5983::begin() {
+char * HMC5983::begin() {
 	Wire.begin();
+  return "HMC5983 1.1 initialized";
 }
 
 bool HMC5983::_use_drdy() {
@@ -146,8 +149,11 @@ float HMC5983::read() {
   if(_use_drdy()) {
     if(_wait_for_drdy) {
       if(digitalRead(_drdy_pin) == HIGH) {
-        H = _read_data();
-        _wait_for_drdy = false;
+        if(millis() - _last_read > READ_INTERVAL) {
+          H = _read_data();
+          _wait_for_drdy = false;
+          _last_read = millis();
+        }
       } else {
         H = -1.0F;
       }

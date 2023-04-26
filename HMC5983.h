@@ -59,11 +59,13 @@ Address Location	Name 		Access
 #define HMC5983_TEMP_OUT_MSB	0x31
 #define HMC5983_TEMP_OUT_LSB	0x32
 
+#define READ_INTERVAL		70
+
 class HMC5983 {
 	public:
 		HMC5983(int drdy_pin, bool D);
 		~HMC5983();
-		void begin();
+		char *begin();
 		float read();
 	private:
 		bool _use_drdy();
@@ -72,6 +74,7 @@ class HMC5983 {
 		bool _debug_flag;
 		int _drdy_pin;
 		bool _wait_for_drdy;
+		unsigned long _last_read;
 };
 
 #endif
