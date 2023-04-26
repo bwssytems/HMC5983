@@ -9,8 +9,8 @@
 #include "HMC5983.h"
 #include <Wire.h>
 
-HMC5983::HMC5983(int drdy_pin, bool D) {
-	_DEBUG = D;
+HMC5983::HMC5983(int drdy_pin, bool debug_flag) {
+	_debug_flag = debug_flag;
   _wait_for_drdy = false;
   _drdy_pin = drdy_pin;
   if(_drdy_pin != -1)
@@ -99,7 +99,7 @@ float HMC5983::_read_data() {
         delay(1);
   };
 
-  if (t >= 5) return -999;
+  if (t >= 5) return -999.0F;
 
   //"The heading output data will be the value in tenths of degrees
   //from zero to 3599 and provided in binary format over the two bytes."
@@ -110,13 +110,13 @@ float HMC5983::_read_data() {
   byte Y_MSB = Wire.read();
   byte Y_LSB = Wire.read();
 
-  if (_DEBUG) {
-	Serial.print("X MSB: "); Serial.print(X_MSB);
-	Serial.print(" - X LSB: "); Serial.println(X_LSB);
-	Serial.print("Y MSB: "); Serial.print(Y_MSB);
-	Serial.print(" - Y LSB: "); Serial.println(Y_LSB);
-	Serial.print("Z MSB: "); Serial.print(Z_MSB);
-	Serial.print(" - Z LSB: "); Serial.println(Z_LSB);
+  if(_debug_flag) {
+    Serial.print("X MSB: "); Serial.print(X_MSB);
+    Serial.print(" - X LSB: "); Serial.println(X_LSB);
+    Serial.print("Y MSB: "); Serial.print(Y_MSB);
+    Serial.print(" - Y LSB: "); Serial.println(Y_LSB);
+    Serial.print("Z MSB: "); Serial.print(Z_MSB);
+    Serial.print(" - Z LSB: "); Serial.println(Z_LSB);
   }
 
   // calculate the heading values for all the three sensors
@@ -137,20 +137,23 @@ float HMC5983::_read_data() {
   if (HY == 0 && HX <= 0) H = 0.0;
   if (HY > 0) H = 90 - atan(HX/HY) * 180 / PI;
   if (HY < 0) H = 270 - atan(HX/HY) * 180 / PI;
+
+  return H;
 }
 
 float HMC5983::read() {
-  float H = -1;
+  float H = -999.0F;
   if(_use_drdy()) {
     if(_wait_for_drdy) {
       if(digitalRead(_drdy_pin) == HIGH) {
         H = _read_data();
         _wait_for_drdy = false;
       } else {
-        H = -1;
+        H = -1.0F;
       }
     } else {
       _send_command();
+      H = -1.0F;
       _wait_for_drdy = true;
     }
   } else {
