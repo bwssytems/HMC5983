@@ -153,6 +153,8 @@ float HMC5983::read() {
           H = _read_data();
           _wait_for_drdy = false;
           _last_read = millis();
+        } else {
+          H = -1.0F;
         }
       } else {
         H = -1.0F;
