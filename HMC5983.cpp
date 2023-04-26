@@ -9,8 +9,8 @@
 #include "HMC5983.h"
 #include <Wire.h>
 
-void HMC5983::begin(int drdy_pin, int D) {
-	DEBUG = D;
+void HMC5983::begin(int drdy_pin, bool D) {
+	_DEBUG = D;
   _wait_for_drdy = false;
   _drdy_pin = drdy_pin;  // Configure battery voltage
   if(_drdy_pin != -1)
@@ -105,7 +105,7 @@ float HMC5983::_read_data() {
   byte Y_MSB = Wire.read();
   byte Y_LSB = Wire.read();
 
-  if (DEBUG) {
+  if (_DEBUG) {
 	Serial.print("X MSB: "); Serial.print(X_MSB);
 	Serial.print(" - X LSB: "); Serial.println(X_LSB);
 	Serial.print("Y MSB: "); Serial.print(Y_MSB);
