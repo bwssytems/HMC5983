@@ -9,13 +9,18 @@
 #include "HMC5983.h"
 #include <Wire.h>
 
-void HMC5983::begin(int drdy_pin, bool D) {
+HMC5983::HMC5983(int drdy_pin, bool D) {
 	_DEBUG = D;
   _wait_for_drdy = false;
-  _drdy_pin = drdy_pin;  // Configure battery voltage
+  _drdy_pin = drdy_pin;
   if(_drdy_pin != -1)
     pinMode(_drdy_pin, INPUT);
+}
 
+HMC5983::~HMC5983() {
+}
+
+void HMC5983::begin() {
 	Wire.begin();
 }
 

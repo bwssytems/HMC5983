@@ -61,7 +61,9 @@ Address Location	Name 		Access
 
 class HMC5983 {
 	public:
-		void begin(int drdy_pin, bool D);
+		HMC5983(int drdy_pin, bool D);
+		~HMC5983();
+		void begin();
 		float read();
 	private:
 		bool _use_drdy();
